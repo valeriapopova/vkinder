@@ -1,7 +1,4 @@
 group_token = ''
 token = ''
 version = '5.131'
-username = ''
-password = ''
 db_name = 'vkinder'
-port = '5432'

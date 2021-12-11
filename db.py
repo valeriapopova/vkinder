@@ -2,9 +2,11 @@ import sqlalchemy as sq
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
 from config import *
+import psycopg2
+
 
 Base = declarative_base()
-engine = sq.create_engine(f'postgresql+psycops2://{username}:{password}@localhost:{port}/{db_name}')
+engine = sq.create_engine(f'postgresql://a1:@localhost:5432/{db_name}')
 Session = sessionmaker(bind=engine)
 session = Session()
 

@@ -3,7 +3,7 @@ import vk_api
 from vk_api.longpoll import VkLongPoll, VkEventType
 from db import engine, Session, Base, User, Match, Photos, BlackList
 
-vk = vk_api.VkApi(token=token)
+vk = vk_api.VkApi(token=group_token)
 longpoll = VkLongPoll(vk)
 session = Session()
 connection = engine.connect()
@@ -40,4 +40,6 @@ def getting_photos(owner_id):
     for res in result['items']:
         sorted_res = sorted(res, key=lambda x: x['likes']['count'], reverse=True)
         for id_photo in sorted_res:
-            all_photos.append()
+            all_photos.append(f"photo{owner_id}_{id_photo['id']}")
+        top_photos = ','.join(all_photos[:3])
+        return top_photos

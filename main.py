@@ -3,10 +3,10 @@ from config import *
 import requests
 import vk_api
 from vk_api.longpoll import VkLongPoll, VkEventType
+from functions_vk import search_partners, getting_photos
 
 vk = vk_api.VkApi(token=token)
 user_api = vk.get_api()
-
 
 
 def write_msg(user_id, message, attachment=''):
@@ -28,7 +28,7 @@ for event in longpoll.listen():
             request = event.text
             if request == "привет" or "Привет":
                 write_msg(event.user_id, f"Хей, {event.user_id}, хочешь найти парнера/партнёрку?\n "
-                                         f"Чтобы начать,отправь СТАРТ")
+                                         f"Чтобы начать поиск,отправь СТАРТ")
             elif request == "пока" or "Пока":
                 write_msg(event.user_id, "До свидания")
             else:
