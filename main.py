@@ -107,6 +107,7 @@ class Bot:
 
     def search_partners(self, age_from, age_to, sex, city):
         result = vk.method('users.search', {
+            'offset': self.offset,
             'age_from': age_from,
             'age_to': age_to,
             'sex': sex,
