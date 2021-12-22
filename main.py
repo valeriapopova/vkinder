@@ -1,6 +1,6 @@
 from random import randrange
 from sqlite3 import IntegrityError
-
+from functions_vk import search_partners, getting_photos
 import db
 from config import *
 import requests
@@ -105,42 +105,6 @@ class Bot:
                                 "чтобы начать поиск ,напишите СТАРТ ")
         db.register_user(self.user_id)
 
-    def search_partners(self, age_from, age_to, sex, city):
-        result = vk.method('users.search', {
-            'offset': self.offset,
-            'age_from': age_from,
-            'age_to': age_to,
-            'sex': sex,
-            'city': city,
-            'status': 6,
-            'has_photo': 1
-        })
-        for items in result['items']:
-            is_closed = items['is_closed']
-            if is_closed:
-                self.offset += 1
-            else:
-                self.match_id = items["id"]
-                self.match_name = items['first_name']
-                self.match_lastname = items['last_name']
-
-    def getting_photos(self, user_id):
-        result = requests.get(
-            'https://api.vk.com/method/photos.get', {
-                'owner_id': user_id,
-                'album_id': 'profile',
-                'access_token': token,
-                'v': version,
-                'extended': 1,
-                'photos_sizes': 1
-            })
-        all_photos = []
-        sorted_res = sorted(result.json()['response']['items'], key=lambda x: x['likes']['count'], reverse=True)
-        for id_photo in sorted_res:
-            all_photos.append(f"photo{self.match_id}_{id_photo['id']}")
-        self.top_photos = ','.join(all_photos[:3])
-        return self.top_photos
-
     def search_pair(self):
         self.get_info()
         db.create_tables()
@@ -158,8 +122,11 @@ class Bot:
                         if self.age_from > self.age_to:
                             write_msg(self.user_id, f"Неверный интервал возраста")
                             self.search_pair()
-                        self.search_partners(self.age_from, self.age_to, self.sex, self.city)
-                        self.getting_photos(self.match_id)
+                        res = search_partners(self.age_from, self.age_to, self.sex, self.city, self.offset)
+                        self.match_id = res['id']
+                        self.match_name = res['first_name']
+                        self.match_lastname = res['last_name']
+                        self.top_photos = getting_photos(self.match_id)
                         profile_link = f'https://vk.com/id{self.match_id}'
                         write_msg(self.user_id, f'Имя: {self.match_name}\n'
                                                 f'Фамилия: {self.match_lastname}\nСсылка: {profile_link}',
@@ -180,7 +147,7 @@ class Bot:
                             try:
                                 db.add_match(id_vk=self.match_id, first_name=self.match_name,
                                              last_name=self.match_lastname,
-                                             link=profile_link)
+                                             link=profile_link, id_user=self.user_id)
                                 write_msg(self.user_id, 'Пользователь добавлен в избранное,ищем дальше(да/нет)?')
                             except IntegrityError:
                                 write_msg(self.user_id, 'Пользователь уже в избранном,ищем дальше(да/нет),'
@@ -191,8 +158,11 @@ class Bot:
                                 event.message == 'Да' or event.message == 'да' or event.message == 'ДА':
                             write_msg(self.user_id, 'Ищем дальше')
                             self.offset += 1
-                            self.search_partners(self.age_from, self.age_to, self.sex, self.city)
-                            self.getting_photos(self.match_id)
+                            res = search_partners(self.age_from, self.age_to, self.sex, self.city, self.offset)
+                            self.match_id = res['id']
+                            self.match_name = res['first_name']
+                            self.match_lastname = res['last_name']
+                            self.top_photos = getting_photos(self.match_id)
                             write_msg(self.user_id, f'Имя: {self.match_name}\n'
                                                     f'Фамилия: {self.match_lastname}\nСсылка: {profile_link}',
                                       self.top_photos)
@@ -203,21 +173,21 @@ class Bot:
                                                     'чтобы закончить СТОП')
                         elif event.message == 'стоп' or event.message == 'СТОП' or event.message == 'Стоп':
                             pass
-
-                        elif request == "СТАРТ" or request == "старт" or request == "Старт":
+                        elif event.message == "СТАРТ" or event.message == "старт" or event.message == "Старт":
                             bot.search_pair()
-
                         elif event.message == 'Чс' or event.message == 'ЧС' or event.message == 'чс':
                             db.add_to_black_list(id_vk=self.match_id, first_name=self.match_name,
                                                  last_name=self.match_lastname,
                                                  link=profile_link)
                             write_msg(self.user_id, 'Пользователь добавлен в черный список,ищем дальше(да/нет)?')
-
                         else:
                             write_msg(self.user_id, 'Ищем дальше')
                             self.offset += 1
-                            self.search_partners(self.age_from, self.age_to, self.sex, self.city)
-                            self.getting_photos(self.match_id)
+                            res = search_partners(self.age_from, self.age_to, self.sex, self.city, self.offset)
+                            self.match_id = res['id']
+                            self.match_name = res['first_name']
+                            self.match_lastname = res['last_name']
+                            self.top_photos = getting_photos(self.match_id)
                             write_msg(self.user_id, f'Имя: {self.match_name}\n'
                                                     f'Фамилия: {self.match_lastname}\nСсылка: {profile_link}',
                                       self.top_photos)
