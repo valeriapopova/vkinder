@@ -158,10 +158,6 @@ class Bot:
                         if self.age_from > self.age_to:
                             write_msg(self.user_id, f"Неверный интервал возраста")
                             self.search_pair()
-                        self.user = db.User(first_name=self.first_name, last_name=self.last_name, city=self.city,
-                                            id_vk=self.user_id, age_from=self.age_from, age_to=self.age_to,
-                                            sex=self.sex)
-                        db.add_user(self.user_id)
                         self.search_partners(self.age_from, self.age_to, self.sex, self.city)
                         self.getting_photos(self.match_id)
                         profile_link = f'https://vk.com/id{self.match_id}'
@@ -172,14 +168,14 @@ class Bot:
 
     def search_pair_(self):
         write_msg(self.user_id, f"Как Вам? Хотите добавить в избранное?"
-                                f"Напишите ДА ,чтобы добавить в избранное, ЧС - чтобы добавить в черный список, "
-                                f"что угодно ,чтобы продолжить")
+                                f"Напишите ЛАЙК ,чтобы добавить в избранное, ЧС - чтобы добавить в черный список, "
+                                f"ДАЛЕЕ ,чтобы продолжить")
         while True:
             for event in longpoll.listen():
                 if event.type == VkEventType.MESSAGE_NEW:
                     if event.to_me:
                         profile_link = f'https://vk.com/id{self.match_id}'
-                        if event.message == 'Да' or event.message == 'да' or event.message == 'ДА':
+                        if event.message == 'лайк' or event.message == 'ЛАЙК' or event.message == 'Лайк':
                             db.add_user(self.user_id)
                             try:
                                 db.add_match(id_vk=self.match_id, first_name=self.match_name,
