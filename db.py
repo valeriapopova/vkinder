@@ -15,7 +15,7 @@ class User(Base):
     id = sq.Column(sq.Integer, primary_key=True, autoincrement=True)
     first_name = sq.Column(sq.String)
     last_name = sq.Column(sq.String)
-    id_vk = sq.Column(sq.Integer)
+    id_vk = sq.Column(sq.Integer, unique=True)
     city = sq.Column(sq.Integer)
     age_from = sq.Column(sq.Integer)
     age_to = sq.Column(sq.Integer)
@@ -29,7 +29,7 @@ class Match(Base):
     last_name = sq.Column(sq.String)
     link = sq.Column(sq.String)
     id_vk = sq.Column(sq.Integer, unique=True)
-    id_user = sq.Column(sq.Integer, sq.ForeignKey('user.id', ondelete='CASCADE'))
+    id_user = sq.Column(sq.Integer, sq.ForeignKey('user.id_vk', ondelete='CASCADE'))
 
 
 class BlackList(Base):
@@ -71,7 +71,7 @@ def register_user(id_vk):
 
 def check(user_id):
     current_user_id = session.query(User).filter_by(id_vk=user_id).first()
-    fav_users = session.query(Match).fitler_by(id_user=current_user_id.id_vk).all()
+    fav_users = session.query(Match).filter_by(id_user=current_user_id.id_vk).all()
     return fav_users
 
 

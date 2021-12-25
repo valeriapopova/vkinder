@@ -103,12 +103,11 @@ class Bot:
     def registration(self):
         write_msg(self.user_id, "Вы прошли регистрацию,"
                                 "чтобы начать поиск ,напишите СТАРТ ")
-        db.register_user(self.user_id)
-
-    def search_pair(self):
         self.get_info()
         db.create_tables()
         db.register_user(self.user_id)
+
+    def search_pair(self):
         write_msg(self.user_id, f"В каком городе будем искать партнера?")
         for event in longpoll.listen():
             if event.type == VkEventType.MESSAGE_NEW:
@@ -143,7 +142,6 @@ class Bot:
                     if event.to_me:
                         profile_link = f'https://vk.com/id{self.match_id}'
                         if event.message == 'лайк' or event.message == 'ЛАЙК' or event.message == 'Лайк':
-                            db.add_user(self.user_id)
                             try:
                                 db.add_match(id_vk=self.match_id, first_name=self.match_name,
                                              last_name=self.match_lastname,
@@ -153,7 +151,10 @@ class Bot:
                                 write_msg(self.user_id, 'Пользователь уже в избранном,ищем дальше(да/нет),'
                                                         'чтобы посмотреть список избранных напишите +?')
                         elif event.message == '+':
-                            db.check(self.user_id)
+                            people = db.check(self.user_id)
+                            for numbers, users in enumerate(people):
+                                write_msg(self.user_id, f'{users.first_name} " " {users.last_name}, {users.link}')
+                            write_msg(self.user_id, 'ищем дальше(да/нет)??')
                         elif event.message == 'ДАЛЕЕ' or event.message == 'далее' or event.message == 'Далее' or \
                                 event.message == 'Да' or event.message == 'да' or event.message == 'ДА':
                             write_msg(self.user_id, 'Ищем дальше')
@@ -169,7 +170,7 @@ class Bot:
                             return self.search_pair_()
                         elif event.message == 'нет' or event.message == 'НЕТ' or event.message == 'Нет':
                             write_msg(self.user_id, 'Чтобы продолжить поиск ,напишите ДАЛЕЕ,'
-                                                    'чтобы начать поиск с новыми параметрами СТАРТ'
+                                                    'чтобы начать поиск с новыми параметрами СТАРТ,'
                                                     'чтобы закончить СТОП')
                         elif event.message == 'стоп' or event.message == 'СТОП' or event.message == 'Стоп':
                             pass
